@@ -91,19 +91,6 @@ firebase deploy --only firestore --project alu-launchpad-bdc6b
 | `applications` | Student applications with status |
 | `users/{id}/notifications` | In-app notifications |
 
-## Rubric checklist (55 pts)
-
-| Criteria | Points | Status |
-|----------|--------|--------|
-| UI/UX — polished, consistent design | 10 | Done |
-| Firebase Auth — login, register, session | 4 | Done |
-| Firestore CRUD — live data in console | 6 | Done |
-| State management & architecture (Riverpod) | 8 | Done |
-| Feature implementation (loading, errors, validation) | 7 | Done |
-| Technical demo video | 5 | **You record** |
-| Code quality — modular structure | 5 | Done |
-| Technical report (APA/IEEE) | 5 | **You write** |
-| Product thinking — ALU ecosystem fit | 5 | Done |
 
 ## Author
 
