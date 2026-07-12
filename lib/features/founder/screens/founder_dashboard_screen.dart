@@ -129,6 +129,17 @@ class FounderDashboardScreen extends ConsumerWidget {
                                         .titleMedium
                                         ?.copyWith(fontWeight: FontWeight.w700),
                                   ),
+                                  if (opportunity.status ==
+                                      OpportunityStatus.closed) ...[
+                                    const SizedBox(height: 6),
+                                    const Text(
+                                      'Closed',
+                                      style: TextStyle(
+                                        color: AppColors.textSecondary,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ],
                                   const SizedBox(height: 8),
                                   Text(
                                     '$applicantCount applicants · $shortlistedCount shortlisted',

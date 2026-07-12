@@ -73,6 +73,17 @@ class _OpportunityDetailScreenState
     }
   }
 
+  Future<void> _toggleSaved(Opportunity opportunity) async {
+    final profile = ref.read(currentUserProfileProvider).value;
+    if (profile == null) return;
+
+    await ref.read(savedRepositoryProvider).toggleSaved(
+          userId: profile.uid,
+          opportunityId: opportunity.id,
+          currentSaved: profile.savedOpportunityIds,
+        );
+  }
+
   void _showError(String message) {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
@@ -85,12 +96,28 @@ class _OpportunityDetailScreenState
     final opportunityAsync =
         ref.watch(opportunityProvider(widget.opportunityId));
     final profile = ref.watch(currentUserProfileProvider).value;
+    final isSaved =
+        profile?.savedOpportunityIds.contains(widget.opportunityId) ?? false;
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Opportunity Details'),
         backgroundColor: Colors.transparent,
         elevation: 0,
+        actions: [
+          opportunityAsync.maybeWhen(
+            data: (opportunity) => opportunity == null
+                ? const SizedBox.shrink()
+                : IconButton(
+                    onPressed: () => _toggleSaved(opportunity),
+                    icon: Icon(
+                      isSaved ? Icons.bookmark : Icons.bookmark_border,
+                      color: isSaved ? AppColors.primary : null,
+                    ),
+                  ),
+            orElse: () => const SizedBox.shrink(),
+          ),
+        ],
       ),
       body: opportunityAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
@@ -108,8 +135,18 @@ class _OpportunityDetailScreenState
             );
           }
 
-          final matches =
-              countSkillMatches(profile?.skills ?? const [], opportunity.requiredSkills);
+          if (opportunity.status == OpportunityStatus.closed) {
+            return const EmptyState(
+              icon: Icons.lock_outline,
+              title: 'Role closed',
+              message: 'This opportunity is no longer accepting applications.',
+            );
+          }
+
+          final matches = countSkillMatches(
+            profile?.skills ?? const [],
+            opportunity.requiredSkills,
+          );
           final total = opportunity.requiredSkills.length;
           final dateFormat = DateFormat('MMM d, yyyy');
 
@@ -123,9 +160,10 @@ class _OpportunityDetailScreenState
                     children: [
                       Text(
                         opportunity.title,
-                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                              fontWeight: FontWeight.w700,
-                            ),
+                        style:
+                            Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                  fontWeight: FontWeight.w700,
+                                ),
                       ),
                       const SizedBox(height: 4),
                       Text(
@@ -156,9 +194,10 @@ class _OpportunityDetailScreenState
                       const SizedBox(height: 24),
                       Text(
                         'About the role',
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.w700,
-                            ),
+                        style:
+                            Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.w700,
+                                ),
                       ),
                       const SizedBox(height: 8),
                       Text(
@@ -173,7 +212,10 @@ class _OpportunityDetailScreenState
                         children: [
                           Text(
                             'Required skills',
-                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleMedium
+                                ?.copyWith(
                                   fontWeight: FontWeight.w700,
                                 ),
                           ),

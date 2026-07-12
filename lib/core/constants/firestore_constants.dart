@@ -4,6 +4,7 @@ class FirestoreCollections {
   static const startups = 'startups';
   static const opportunities = 'opportunities';
   static const applications = 'applications';
+  static const notifications = 'notifications';
 }
 
 class UserFields {
@@ -16,6 +17,7 @@ class UserFields {
   static const year = 'year';
   static const location = 'location';
   static const startupId = 'startupId';
+  static const savedOpportunityIds = 'savedOpportunityIds';
   static const createdAt = 'createdAt';
   static const updatedAt = 'updatedAt';
 }
@@ -60,4 +62,12 @@ class ApplicationFields {
   static const hasUpdate = 'hasUpdate';
   static const appliedAt = 'appliedAt';
   static const updatedAt = 'updatedAt';
+}
+
+class NotificationFields {
+  static const title = 'title';
+  static const body = 'body';
+  static const read = 'read';
+  static const relatedApplicationId = 'relatedApplicationId';
+  static const createdAt = 'createdAt';
 }

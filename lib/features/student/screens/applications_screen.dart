@@ -57,71 +57,137 @@ class ApplicationsScreen extends ConsumerWidget {
   }
 }
 
-class _ApplicationCard extends StatelessWidget {
+class _ApplicationCard extends ConsumerWidget {
   const _ApplicationCard({required this.application});
 
   final Application application;
 
+  Future<void> _markRead(WidgetRef ref) async {
+    if (!application.hasUpdate) return;
+    await ref
+        .read(applicationRepositoryProvider)
+        .markAsRead(application.id);
+  }
+
+  Future<void> _withdraw(BuildContext context, WidgetRef ref) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Withdraw application?'),
+        content: const Text(
+          'This will remove your application for this role.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Withdraw'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
+    try {
+      await ref.read(applicationRepositoryProvider).withdraw(application.id);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Application withdrawn.')),
+        );
+      }
+    } catch (_) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Could not withdraw application.')),
+        );
+      }
+    }
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        application.opportunityTitle,
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.w700,
-                            ),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(AppTheme.cardRadius),
+        onTap: () => _markRead(ref),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          application.opportunityTitle,
+                          style:
+                              Theme.of(context).textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          application.startupName,
+                          style:
+                              const TextStyle(color: AppColors.textSecondary),
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (application.hasUpdate)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 6,
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        application.startupName,
-                        style: const TextStyle(color: AppColors.textSecondary),
+                      decoration: BoxDecoration(
+                        color: AppColors.primaryLight,
+                        borderRadius: BorderRadius.circular(20),
                       ),
-                    ],
+                      child: const Text(
+                        'New update',
+                        style: TextStyle(
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              ApplicationProgressStepper(status: application.status),
+              const SizedBox(height: 12),
+              Text(
+                'Status: ${application.status.label}',
+                style: const TextStyle(
+                  color: AppColors.textSecondary,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              if (application.status == ApplicationStatus.applied ||
+                  application.status == ApplicationStatus.review) ...[
+                const SizedBox(height: 8),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: () => _withdraw(context, ref),
+                    child: const Text(
+                      'Withdraw',
+                      style: TextStyle(color: AppColors.accent),
+                    ),
                   ),
                 ),
-                if (application.hasUpdate)
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppColors.primaryLight,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: const Text(
-                      'New update',
-                      style: TextStyle(
-                        color: AppColors.primary,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ),
               ],
-            ),
-            const SizedBox(height: 16),
-            ApplicationProgressStepper(status: application.status),
-            const SizedBox(height: 12),
-            Text(
-              'Status: ${application.status.label}',
-              style: const TextStyle(
-                color: AppColors.textSecondary,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

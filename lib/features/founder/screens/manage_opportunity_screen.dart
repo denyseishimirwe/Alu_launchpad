@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/theme/app_theme.dart';
 import '../../../shared/models/application.dart';
 import '../../../shared/models/opportunity.dart';
 import '../../student/widgets/application_progress_stepper.dart';
@@ -13,16 +14,69 @@ class ManageOpportunityScreen extends ConsumerWidget {
 
   final Opportunity opportunity;
 
+  Future<void> _closePosting(BuildContext context, WidgetRef ref) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Close posting?'),
+        content: const Text(
+          'Students will no longer be able to apply to this role.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Close posting'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
+    try {
+      await ref
+          .read(founderRepositoryProvider)
+          .closeOpportunity(opportunity.id);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Posting closed.')),
+        );
+        Navigator.pop(context);
+      }
+    } catch (_) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Could not close posting.')),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final applicationsAsync =
         ref.watch(opportunityApplicationsProvider(opportunity.id));
+    final isClosed = opportunity.status == OpportunityStatus.closed;
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Manage posting'),
         backgroundColor: Colors.transparent,
         elevation: 0,
+        actions: [
+          if (!isClosed)
+            TextButton(
+              onPressed: () => _closePosting(context, ref),
+              child: const Text(
+                'Close',
+                style: TextStyle(color: AppColors.accent),
+              ),
+            ),
+        ],
       ),
       body: applicationsAsync.when(
         loading: () => const HomeSkeleton(),
@@ -43,17 +97,41 @@ class ManageOpportunityScreen extends ConsumerWidget {
           return ListView(
             padding: const EdgeInsets.all(16),
             children: [
-              Text(
-                opportunity.title,
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.w700,
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      opportunity.title,
+                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                            fontWeight: FontWeight.w700,
+                          ),
                     ),
+                  ),
+                  if (isClosed)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.cardBorder,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: const Text(
+                        'Closed',
+                        style: TextStyle(fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                ],
               ),
               const SizedBox(height: 16),
               ...applications.map(
                 (application) => Padding(
                   padding: const EdgeInsets.only(bottom: 12),
-                  child: _ManageApplicantCard(application: application),
+                  child: _ManageApplicantCard(
+                    application: application,
+                    enabled: !isClosed,
+                  ),
                 ),
               ),
             ],
@@ -65,9 +143,13 @@ class ManageOpportunityScreen extends ConsumerWidget {
 }
 
 class _ManageApplicantCard extends ConsumerWidget {
-  const _ManageApplicantCard({required this.application});
+  const _ManageApplicantCard({
+    required this.application,
+    required this.enabled,
+  });
 
   final Application application;
+  final bool enabled;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -85,27 +167,29 @@ class _ManageApplicantCard extends ConsumerWidget {
             ),
             const SizedBox(height: 12),
             ApplicationProgressStepper(status: application.status),
-            const SizedBox(height: 12),
-            Wrap(
-              spacing: 8,
-              children: [
-                ApplicationStatus.applied,
-                ApplicationStatus.review,
-                ApplicationStatus.shortlisted,
-                ApplicationStatus.accepted,
-              ].map((status) {
-                return ChoiceChip(
-                  label: Text(status.label),
-                  selected: application.status == status,
-                  onSelected: (_) {
-                    ref.read(founderRepositoryProvider).updateApplicationStatus(
-                          applicationId: application.id,
-                          status: status,
-                        );
-                  },
-                );
-              }).toList(),
-            ),
+            if (enabled) ...[
+              const SizedBox(height: 12),
+              Wrap(
+                spacing: 8,
+                children: [
+                  ApplicationStatus.applied,
+                  ApplicationStatus.review,
+                  ApplicationStatus.shortlisted,
+                  ApplicationStatus.accepted,
+                ].map((status) {
+                  return ChoiceChip(
+                    label: Text(status.label),
+                    selected: application.status == status,
+                    onSelected: (_) {
+                      ref.read(founderRepositoryProvider).updateApplicationStatus(
+                            application: application,
+                            status: status,
+                          );
+                    },
+                  );
+                }).toList(),
+              ),
+            ],
           ],
         ),
       ),

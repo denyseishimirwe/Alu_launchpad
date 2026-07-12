@@ -67,4 +67,21 @@ class ApplicationRepository {
         .collection(FirestoreCollections.applications)
         .add(application.toFirestore());
   }
+
+  Future<void> markAsRead(String applicationId) async {
+    await _firestore
+        .collection(FirestoreCollections.applications)
+        .doc(applicationId)
+        .update({
+      ApplicationFields.hasUpdate: false,
+      ApplicationFields.updatedAt: FieldValue.serverTimestamp(),
+    });
+  }
+
+  Future<void> withdraw(String applicationId) async {
+    await _firestore
+        .collection(FirestoreCollections.applications)
+        .doc(applicationId)
+        .delete();
+  }
 }

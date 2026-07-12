@@ -5,14 +5,37 @@ import '../../../core/theme/app_theme.dart';
 import '../../auth/providers/auth_providers.dart';
 import '../../../shared/models/application.dart';
 import '../providers/student_providers.dart';
+import 'edit_student_profile_screen.dart';
+import 'notifications_screen.dart';
+import 'saved_opportunities_screen.dart';
 
 class StudentProfileScreen extends ConsumerWidget {
   const StudentProfileScreen({super.key});
+
+  void _showHelp(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Help & Support'),
+        content: const Text(
+          'For LaunchPad ALU support, contact the ALU Career Services team '
+          'or email d.ishimrwe@alustudent.com for technical issues.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final profile = ref.watch(currentUserProfileProvider).value;
     final applicationsAsync = ref.watch(studentApplicationsProvider);
+    final savedCount = profile?.savedOpportunityIds.length ?? 0;
 
     final applications = applicationsAsync.value ?? const <Application>[];
     final appliedCount = applications.length;
@@ -50,10 +73,18 @@ class StudentProfileScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            profile?.location ?? 'ALU Student',
+            profile?.location ?? profile?.degree ?? 'ALU Student',
             textAlign: TextAlign.center,
             style: const TextStyle(color: AppColors.textSecondary),
           ),
+          if (profile?.year != null) ...[
+            const SizedBox(height: 4),
+            Text(
+              'Year ${profile!.year}',
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: AppColors.textSecondary),
+            ),
+          ],
           const SizedBox(height: 24),
           Row(
             children: [
@@ -85,10 +116,40 @@ class StudentProfileScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 32),
           ListTile(
+            leading: const Icon(Icons.edit_outlined),
+            title: const Text('Edit profile'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => const EditStudentProfileScreen(),
+              ),
+            ),
+          ),
+          ListTile(
+            leading: const Icon(Icons.bookmark_outline),
+            title: Text('Saved opportunities ($savedCount)'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => const SavedOpportunitiesScreen(),
+              ),
+            ),
+          ),
+          ListTile(
+            leading: const Icon(Icons.notifications_outlined),
+            title: const Text('Notifications'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => const NotificationsScreen(),
+              ),
+            ),
+          ),
+          ListTile(
             leading: const Icon(Icons.help_outline),
             title: const Text('Help & Support'),
             trailing: const Icon(Icons.chevron_right),
-            onTap: () {},
+            onTap: () => _showHelp(context),
           ),
           ListTile(
             leading: const Icon(Icons.logout, color: AppColors.accent),

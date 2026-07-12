@@ -54,4 +54,20 @@ class StartupRepository {
 
     return startup;
   }
+
+  Future<void> updateStartup({
+    required String startupId,
+    required String name,
+    required String description,
+    String? location,
+    String? category,
+  }) async {
+    await _firestore.collection(FirestoreCollections.startups).doc(startupId).update({
+      StartupFields.name: name,
+      StartupFields.description: description,
+      if (location != null) StartupFields.location: location,
+      if (category != null) StartupFields.category: category,
+      StartupFields.updatedAt: FieldValue.serverTimestamp(),
+    });
+  }
 }

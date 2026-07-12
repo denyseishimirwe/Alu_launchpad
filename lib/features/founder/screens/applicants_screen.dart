@@ -102,7 +102,7 @@ class _ApplicantCard extends ConsumerWidget {
                         await ref
                             .read(founderRepositoryProvider)
                             .updateApplicationStatus(
-                              applicationId: application.id,
+                              application: application,
                               status: status,
                             );
                       },
@@ -114,7 +114,7 @@ class _ApplicantCard extends ConsumerWidget {
             TextButton(
               onPressed: () async {
                 await ref.read(founderRepositoryProvider).updateApplicationStatus(
-                      applicationId: application.id,
+                      application: application,
                       status: ApplicationStatus.rejected,
                     );
               },

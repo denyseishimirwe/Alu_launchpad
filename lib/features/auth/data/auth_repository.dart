@@ -133,6 +133,26 @@ class AuthRepository {
     await _firestore.collection(FirestoreCollections.users).doc(uid).update(update);
   }
 
+  Future<void> updateUserProfile({
+    required String uid,
+    String? fullName,
+    List<String>? skills,
+    String? degree,
+    int? year,
+    String? location,
+  }) async {
+    final update = <String, dynamic>{
+      UserFields.updatedAt: FieldValue.serverTimestamp(),
+    };
+    if (fullName != null) update[UserFields.fullName] = fullName;
+    if (skills != null) update[UserFields.skills] = skills;
+    if (degree != null) update[UserFields.degree] = degree;
+    if (year != null) update[UserFields.year] = year;
+    if (location != null) update[UserFields.location] = location;
+
+    await _firestore.collection(FirestoreCollections.users).doc(uid).update(update);
+  }
+
   Future<void> signOut() async {
     await ensureGoogleSignInInitialized();
     await Future.wait([

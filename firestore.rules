@@ -14,6 +14,12 @@ service cloud.firestore {
       allow create: if isOwner(userId);
       allow update: if isOwner(userId);
       allow delete: if false;
+
+      match /notifications/{notificationId} {
+        allow read, update: if isOwner(userId);
+        allow create: if isSignedIn();
+        allow delete: if isOwner(userId);
+      }
     }
 
     match /startups/{startupId} {
@@ -41,7 +47,8 @@ service cloud.firestore {
         resource.data.studentId == request.auth.uid
         || get(/databases/$(database)/documents/opportunities/$(resource.data.opportunityId)).data.postedBy == request.auth.uid
       );
-      allow delete: if false;
+      allow delete: if isSignedIn()
+        && resource.data.studentId == request.auth.uid;
     }
   }
 }

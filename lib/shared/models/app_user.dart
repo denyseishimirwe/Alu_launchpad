@@ -14,6 +14,7 @@ class AppUser {
     this.year,
     this.location,
     this.startupId,
+    this.savedOpportunityIds = const [],
     this.createdAt,
     this.updatedAt,
   });
@@ -28,6 +29,7 @@ class AppUser {
   final int? year;
   final String? location;
   final String? startupId;
+  final List<String> savedOpportunityIds;
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
@@ -44,6 +46,7 @@ class AppUser {
     int? year,
     String? location,
     String? startupId,
+    List<String>? savedOpportunityIds,
     DateTime? updatedAt,
   }) {
     return AppUser(
@@ -57,6 +60,7 @@ class AppUser {
       year: year ?? this.year,
       location: location ?? this.location,
       startupId: startupId ?? this.startupId,
+      savedOpportunityIds: savedOpportunityIds ?? this.savedOpportunityIds,
       createdAt: createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -75,6 +79,9 @@ class AppUser {
       year: data['year'] as int?,
       location: data['location'] as String?,
       startupId: data['startupId'] as String?,
+      savedOpportunityIds: List<String>.from(
+        data['savedOpportunityIds'] as List<dynamic>? ?? [],
+      ),
       createdAt: (data['createdAt'] as Timestamp?)?.toDate(),
       updatedAt: (data['updatedAt'] as Timestamp?)?.toDate(),
     );
@@ -91,6 +98,7 @@ class AppUser {
       if (year != null) 'year': year,
       if (location != null) 'location': location,
       if (startupId != null) 'startupId': startupId,
+      'savedOpportunityIds': savedOpportunityIds,
       'createdAt': createdAt != null
           ? Timestamp.fromDate(createdAt!)
           : FieldValue.serverTimestamp(),

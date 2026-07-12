@@ -5,6 +5,7 @@ import '../../../core/theme/app_theme.dart';
 import '../../../shared/models/application.dart';
 import '../../auth/providers/auth_providers.dart';
 import '../providers/founder_providers.dart';
+import 'edit_startup_screen.dart';
 
 class FounderProfileScreen extends ConsumerWidget {
   const FounderProfileScreen({super.key});
@@ -74,6 +75,17 @@ class FounderProfileScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 24),
           ],
+          if (startup != null)
+            ListTile(
+              leading: const Icon(Icons.edit_outlined),
+              title: const Text('Edit startup profile'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => EditStartupScreen(startup: startup),
+                ),
+              ),
+            ),
           ListTile(
             leading: const Icon(Icons.logout, color: AppColors.accent),
             title: const Text(

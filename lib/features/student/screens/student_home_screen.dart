@@ -10,6 +10,7 @@ import '../widgets/category_chips.dart';
 import '../widgets/empty_state.dart';
 import '../widgets/home_skeleton.dart';
 import '../widgets/opportunity_card.dart';
+import 'notifications_screen.dart';
 import 'opportunity_detail_screen.dart';
 
 class StudentHomeScreen extends ConsumerWidget {
@@ -28,6 +29,7 @@ class StudentHomeScreen extends ConsumerWidget {
     final profile = ref.watch(currentUserProfileProvider).value;
     final opportunitiesAsync = ref.watch(filteredOpportunitiesProvider);
     final filters = ref.watch(studentFiltersProvider);
+    final unreadCount = ref.watch(unreadNotificationsCountProvider);
     final firstName = profile?.fullName.split(' ').first ?? 'there';
 
     return SafeArea(
@@ -62,11 +64,32 @@ class StudentHomeScreen extends ConsumerWidget {
                   child: ListView(
                     padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
                     children: [
-                      Text(
-                        'Hello, $firstName 👋',
-                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                              fontWeight: FontWeight.w700,
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              'Hello, $firstName 👋',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .headlineSmall
+                                  ?.copyWith(
+                                    fontWeight: FontWeight.w700,
+                                  ),
                             ),
+                          ),
+                          IconButton(
+                            onPressed: () => Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => const NotificationsScreen(),
+                              ),
+                            ),
+                            icon: Badge(
+                              isLabelVisible: unreadCount > 0,
+                              label: Text('$unreadCount'),
+                              child: const Icon(Icons.notifications_outlined),
+                            ),
+                          ),
+                        ],
                       ),
                       const SizedBox(height: 4),
                       const Text(

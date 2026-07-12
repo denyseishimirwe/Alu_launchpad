@@ -5,12 +5,17 @@ import '../../../shared/models/application.dart';
 import '../../../shared/models/app_user.dart';
 import '../../../shared/models/opportunity.dart';
 import '../../../shared/models/startup.dart';
+import '../../student/data/notification_repository.dart';
 
 class FounderRepository {
-  FounderRepository({FirebaseFirestore? firestore})
-      : _firestore = firestore ?? FirebaseFirestore.instance;
+  FounderRepository({
+    FirebaseFirestore? firestore,
+    NotificationRepository? notificationRepository,
+  })  : _firestore = firestore ?? FirebaseFirestore.instance,
+        _notifications = notificationRepository ?? NotificationRepository();
 
   final FirebaseFirestore _firestore;
+  final NotificationRepository _notifications;
 
   Stream<List<Opportunity>> watchFounderOpportunities(String founderId) {
     return _firestore
@@ -77,16 +82,34 @@ class FounderRepository {
   }
 
   Future<void> updateApplicationStatus({
-    required String applicationId,
+    required Application application,
     required ApplicationStatus status,
   }) async {
     await _firestore
         .collection(FirestoreCollections.applications)
-        .doc(applicationId)
+        .doc(application.id)
         .update({
       ApplicationFields.status: status.firestoreValue,
       ApplicationFields.hasUpdate: true,
       ApplicationFields.updatedAt: FieldValue.serverTimestamp(),
+    });
+
+    await _notifications.createNotification(
+      userId: application.studentId,
+      title: 'Application update',
+      body:
+          'Your application for ${application.opportunityTitle} is now ${status.label}.',
+      relatedApplicationId: application.id,
+    );
+  }
+
+  Future<void> closeOpportunity(String opportunityId) async {
+    await _firestore
+        .collection(FirestoreCollections.opportunities)
+        .doc(opportunityId)
+        .update({
+      OpportunityFields.status: OpportunityStatus.closed.firestoreValue,
+      OpportunityFields.updatedAt: FieldValue.serverTimestamp(),
     });
   }
 }

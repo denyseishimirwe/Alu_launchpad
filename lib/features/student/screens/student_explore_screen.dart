@@ -58,6 +58,18 @@ class StudentExploreScreen extends ConsumerWidget {
                   onChanged: ref.read(studentFiltersProvider.notifier).setSearch,
                 ),
                 const SizedBox(height: 16),
+                Row(
+                  children: [
+                    FilterChip(
+                      label: const Text('Saved'),
+                      selected: filters.savedOnly,
+                      onSelected: (selected) => ref
+                          .read(studentFiltersProvider.notifier)
+                          .setSavedOnly(selected),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
                 CategoryChips(
                   categories: OpportunityCategories.options,
                   selected: filters.category,
