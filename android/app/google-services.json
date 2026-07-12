@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "561955327867",
+    "project_id": "alu-launchpad-bdc6b",
+    "storage_bucket": "alu-launchpad-bdc6b.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:561955327867:android:d852ccdbed567df42d77de",
+        "android_client_info": {
+          "package_name": "rw.alu.alu_launchpad"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB3AxjbBVTa-7akztrUsxopVCusnQAXtV0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

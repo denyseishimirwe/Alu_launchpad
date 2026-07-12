@@ -1,0 +1,25 @@
+{
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  },
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "alu-launchpad-bdc6b",
+          "appId": "1:561955327867:android:d852ccdbed567df42d77de",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "alu-launchpad-bdc6b",
+          "configurations": {
+            "android": "1:561955327867:android:d852ccdbed567df42d77de"
+          }
+        }
+      }
+    }
+  }
+}

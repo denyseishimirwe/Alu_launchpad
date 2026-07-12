@@ -1,0 +1,47 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    match /users/{userId} {
+      allow read: if isSignedIn();
+      allow create: if isOwner(userId);
+      allow update: if isOwner(userId);
+      allow delete: if false;
+    }
+
+    match /startups/{startupId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update, delete: if isSignedIn()
+        && resource.data.founderId == request.auth.uid;
+    }
+
+    match /opportunities/{opportunityId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update, delete: if isSignedIn()
+        && resource.data.postedBy == request.auth.uid;
+    }
+
+    match /applications/{applicationId} {
+      allow read: if isSignedIn() && (
+        resource.data.studentId == request.auth.uid
+        || get(/databases/$(database)/documents/opportunities/$(resource.data.opportunityId)).data.postedBy == request.auth.uid
+      );
+      allow create: if isSignedIn()
+        && request.resource.data.studentId == request.auth.uid;
+      allow update: if isSignedIn() && (
+        resource.data.studentId == request.auth.uid
+        || get(/databases/$(database)/documents/opportunities/$(resource.data.opportunityId)).data.postedBy == request.auth.uid
+      );
+      allow delete: if false;
+    }
+  }
+}
