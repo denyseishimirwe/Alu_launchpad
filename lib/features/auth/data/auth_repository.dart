@@ -153,6 +153,10 @@ class AuthRepository {
     await _firestore.collection(FirestoreCollections.users).doc(uid).update(update);
   }
 
+  Future<void> sendPasswordResetEmail(String email) async {
+    await _auth.sendPasswordResetEmail(email: email.trim());
+  }
+
   Future<void> signOut() async {
     await ensureGoogleSignInInitialized();
     await Future.wait([

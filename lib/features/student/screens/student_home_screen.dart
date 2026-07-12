@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/constants/opportunity_categories.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../shared/models/opportunity.dart';
 import '../../../shared/utils/skill_matcher.dart';
 import '../../auth/providers/auth_providers.dart';
 import '../providers/student_providers.dart';
@@ -97,6 +98,14 @@ class StudentHomeScreen extends ConsumerWidget {
                         style: TextStyle(color: AppColors.textSecondary),
                       ),
                       const SizedBox(height: 20),
+                      if (ranked.isNotEmpty) ...[
+                        _FeaturedOpportunityCard(
+                          opportunity: ranked.first,
+                          userSkills: profile?.skills ?? const [],
+                          onTap: () => _openDetail(context, ranked.first.id),
+                        ),
+                        const SizedBox(height: 20),
+                      ],
                       TextField(
                         decoration: const InputDecoration(
                           hintText: 'Search for opportunities...',
@@ -127,7 +136,7 @@ class StudentHomeScreen extends ConsumerWidget {
                               'Try another category or search term to discover roles.',
                         )
                       else
-                        ...ranked.map(
+                        ...ranked.skip(ranked.isNotEmpty ? 1 : 0).map(
                           (opportunity) => Padding(
                             padding: const EdgeInsets.only(bottom: 12),
                             child: OpportunityCard(
@@ -145,6 +154,80 @@ class StudentHomeScreen extends ConsumerWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _FeaturedOpportunityCard extends StatelessWidget {
+  const _FeaturedOpportunityCard({
+    required this.opportunity,
+    required this.userSkills,
+    required this.onTap,
+  });
+
+  final Opportunity opportunity;
+  final List<String> userSkills;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final matches = countSkillMatches(userSkills, opportunity.requiredSkills);
+    final total = opportunity.requiredSkills.length;
+
+    return Card(
+      color: AppColors.primary,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AppTheme.cardRadius),
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: const Text(
+                  'Featured for you',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 12,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                opportunity.title,
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w700,
+                    ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                opportunity.startupName,
+                style: TextStyle(
+                  color: Colors.white.withValues(alpha: 0.85),
+                ),
+              ),
+              if (total > 0) ...[
+                const SizedBox(height: 12),
+                Text(
+                  '$matches/$total skills matched',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
       ),
     );
   }

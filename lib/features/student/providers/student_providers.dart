@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../auth/providers/auth_providers.dart';
+import '../../../shared/models/application.dart';
 import '../../../shared/models/opportunity.dart';
 import '../data/application_repository.dart';
 import '../data/notification_repository.dart';
@@ -31,7 +32,7 @@ final opportunityProvider = StreamProvider.family<Opportunity?, String>((ref, id
   return ref.watch(opportunityRepositoryProvider).watchOpportunity(id);
 });
 
-final studentApplicationsProvider = StreamProvider((ref) {
+final studentApplicationsProvider = StreamProvider<List<Application>>((ref) {
   final profile = ref.watch(currentUserProfileProvider).value;
   if (profile == null) {
     return Stream.value(const []);

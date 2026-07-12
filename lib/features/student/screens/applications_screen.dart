@@ -8,11 +8,43 @@ import '../widgets/application_progress_stepper.dart';
 import '../widgets/empty_state.dart';
 import '../widgets/home_skeleton.dart';
 
-class ApplicationsScreen extends ConsumerWidget {
+enum ApplicationTab { applied, inReview, accepted, all }
+
+class ApplicationsScreen extends ConsumerStatefulWidget {
   const ApplicationsScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ApplicationsScreen> createState() => _ApplicationsScreenState();
+}
+
+class _ApplicationsScreenState extends ConsumerState<ApplicationsScreen> {
+  ApplicationTab _tab = ApplicationTab.all;
+
+  List<Application> _filter(List<Application> applications) {
+    switch (_tab) {
+      case ApplicationTab.applied:
+        return applications
+            .where((item) => item.status == ApplicationStatus.applied)
+            .toList();
+      case ApplicationTab.inReview:
+        return applications
+            .where(
+              (item) =>
+                  item.status == ApplicationStatus.review ||
+                  item.status == ApplicationStatus.shortlisted,
+            )
+            .toList();
+      case ApplicationTab.accepted:
+        return applications
+            .where((item) => item.status == ApplicationStatus.accepted)
+            .toList();
+      case ApplicationTab.all:
+        return applications;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final applicationsAsync = ref.watch(studentApplicationsProvider);
 
     return SafeArea(
@@ -24,34 +56,108 @@ class ApplicationsScreen extends ConsumerWidget {
           message: error.toString(),
         ),
         data: (applications) {
-          if (applications.isEmpty) {
-            return const EmptyState(
-              icon: Icons.assignment_outlined,
-              title: 'No applications yet',
-              message:
-                  'Apply to opportunities from Home or Explore to track your progress here.',
-            );
-          }
+          final filtered = _filter(applications);
 
-          return ListView(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text(
-                'Active Applications',
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
-              ),
-              const SizedBox(height: 16),
-              ...applications.map(
-                (application) => Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: _ApplicationCard(application: application),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                child: Text(
+                  'My Applications',
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
                 ),
+              ),
+              const SizedBox(height: 12),
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Row(
+                  children: [
+                    _TabChip(
+                      label: 'Applied',
+                      selected: _tab == ApplicationTab.applied,
+                      onTap: () =>
+                          setState(() => _tab = ApplicationTab.applied),
+                    ),
+                    _TabChip(
+                      label: 'In review',
+                      selected: _tab == ApplicationTab.inReview,
+                      onTap: () =>
+                          setState(() => _tab = ApplicationTab.inReview),
+                    ),
+                    _TabChip(
+                      label: 'Accepted',
+                      selected: _tab == ApplicationTab.accepted,
+                      onTap: () =>
+                          setState(() => _tab = ApplicationTab.accepted),
+                    ),
+                    _TabChip(
+                      label: 'All',
+                      selected: _tab == ApplicationTab.all,
+                      onTap: () => setState(() => _tab = ApplicationTab.all),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+              Expanded(
+                child: applications.isEmpty
+                    ? const EmptyState(
+                        icon: Icons.assignment_outlined,
+                        title: 'No applications yet',
+                        message:
+                            'Apply to opportunities from Home or Explore to track your progress here.',
+                      )
+                    : filtered.isEmpty
+                        ? EmptyState(
+                            icon: Icons.filter_list_off,
+                            title: 'No applications here',
+                            message:
+                                'Try another tab to see applications in other stages.',
+                          )
+                        : ListView.builder(
+                            padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                            itemCount: filtered.length,
+                            itemBuilder: (context, index) => Padding(
+                              padding: const EdgeInsets.only(bottom: 12),
+                              child: _ApplicationCard(
+                                application: filtered[index],
+                              ),
+                            ),
+                          ),
               ),
             ],
           );
         },
+      ),
+    );
+  }
+}
+
+class _TabChip extends StatelessWidget {
+  const _TabChip({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(right: 8),
+      child: FilterChip(
+        label: Text(label),
+        selected: selected,
+        onSelected: (_) => onTap(),
+        selectedColor: AppColors.primaryLight,
+        checkmarkColor: AppColors.primary,
       ),
     );
   }
